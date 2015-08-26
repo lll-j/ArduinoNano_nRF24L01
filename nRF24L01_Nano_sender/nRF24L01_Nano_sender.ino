@@ -25,7 +25,7 @@ void setup()
     Serial.begin(9600);
  
     Mirf.cePin = 9;                //设置CE引脚为D9
-    Mirf.csnPin = 10;        //设置CE引脚为D10
+    Mirf.csnPin = 10;        //设置CSN引脚为D10
     Mirf.spi = &MirfHardwareSpi;
     Mirf.init();  //初始化nRF24L01                
  
