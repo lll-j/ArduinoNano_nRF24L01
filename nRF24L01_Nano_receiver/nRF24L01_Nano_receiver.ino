@@ -1,10 +1,10 @@
 /*
-nRF24L01 Arduino Receiver���ն�
-
+nRF24L01 Arduino Receiver接收端
+ 
 Ansifa
 2015/3/7
-
-���Žӷ���
+ 
+引脚接法：
 nRF24L01   Arduino UNO
 VCC <-> 3.3V
 GND <-> GND
@@ -13,63 +13,64 @@ CSN <-> D10
 MOSI<-> D11
 MISO<-> D12
 SCK <-> D13
-IRQ <-> ����
+IRQ <-> 不接
 */
-
+ 
 #include <SPI.h>
 #include <Mirf.h>
 #include <nRF24L01.h>
 #include <MirfHardwareSpiDriver.h>
-
-    //����һ������adata�洢���ս��,oldadata�洢�ɽ������ֹ��ͬ���ˢ����
+ 
+    //定义一个变量adata存储最终结果,oldadata存储旧结果，防止相同结果刷屏。
     unsigned int adata = 0, oldadata = 0;
-
+ 
 void setup()
 {
     Serial.begin(9600);
-
-    //---------��ʼ�����֣�������ʱ�޸�---------
-    Mirf.cePin = 9;     //����CE����ΪD9
-    Mirf.csnPin = 10;   //����CE����ΪD10
+ 
+    //---------初始化部分，不可随时修改---------
+    Mirf.cePin = 9;     //设置CE引脚为D9
+    Mirf.csnPin = 10;   //设置CE引脚为D10
     Mirf.spi = &MirfHardwareSpi;
-    Mirf.init();  //��ʼ��nRF24L01
-
-    //---------���ò��֣�������ʱ�޸�---------
-    //���ý��ձ�ʶ��"Rev01"
+    Mirf.init();  //初始化nRF24L01
+ 
+    //---------配置部分，可以随时修改---------
+    //设置接收标识符"Rev01"
     Mirf.setRADDR((byte *)"Rec01");
-    //����һ���շ����ֽ��������﷢һ��������
-    //дsizeof(unsigned int)��ʵ�ʵ���2�ֽ�
+    //设置一次收发的字节数，这里发一个整数，
+    //写sizeof(unsigned int)，实际等于2字节
     Mirf.payload = sizeof(unsigned int);
-    //����ͨ����������0~128���շ�����һ�¡�
+    //发送通道，可以填0~128，收发必须一致。
     Mirf.channel = 3;
     Mirf.config();
-
-    //ע��һ��ArduinoдSender.ino����һ��дReceiver.ino��
-    //�����������д����Receiver.ino����
+ 
+    //注意一个Arduino写Sender.ino，另一个写Receiver.ino。
+    //这里用来辨别写入了Receiver.ino程序
     Serial.println("I'm Receiver...");
 }
-
+ 
 void loop()
 {
-    //����һ���ݴ����飬��СΪMirf.payload��
+    //定义一个暂存数组，大小为Mirf.payload。
     byte data[Mirf.payload];
-    if(Mirf.dataReady())    //�ȴ���������׼����
+    if(Mirf.dataReady())    //等待接收数据准备好
     {
-        Mirf.getData(data);    //�������ݵ�data����
-        //data[1]<����8λ��data[0]�����������ݡ�
+        Mirf.getData(data);    //接收数据到data数组
+        //data[1]<左移8位与data[0]并，重组数据。
         adata = (unsigned int)((data[1] << 8) | data[0]);
-
-        //����һ�ν���Ƚϣ�������ͬ���ˢ��,���ʹ�������
+ 
+        //与上一次结果比较，避免相同结果刷屏,降低串口流量
         if(adata != oldadata)
         {
-            oldadata = adata; //���ν����Ϊ��ʷ�����
-            //Serial.print�������
+            oldadata = adata; //本次结果作为历史结果。
+            //Serial.print输出数据
             Serial.print("A0=");
             Serial.println(adata);
-            //Ҳ�������˫�ֽ�����
+            //也可以输出双字节数据
             //Serial.write(data[1]);
             //Serial.write(data[0]);
         }
-
+ 
     }
 }
+
