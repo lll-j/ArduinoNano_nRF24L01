@@ -1,5 +1,6 @@
 /*
 nRF24L01 Arduino Receiver接收端
+图表输出版本
  
 Ansifa
 2015/3/7
@@ -21,8 +22,8 @@ IRQ <-> 不接
 #include <nRF24L01.h>
 #include <MirfHardwareSpiDriver.h>
  
-    //定义一个变量adata存储最终结果,oldadata存储旧结果，防止相同结果刷屏。
-    unsigned int adata = 0, oldadata = 0;
+//定义一个变量adata存储最终结果。
+unsigned int adata = 0;
  
 void setup()
 {
@@ -59,18 +60,9 @@ void loop()
         //data[1]<左移8位与data[0]并，重组数据。
         adata = (unsigned int)((data[1] << 8) | data[0]);
  
-        //与上一次结果比较，避免相同结果刷屏,降低串口流量
-        if(adata != oldadata)
-        {
-            oldadata = adata; //本次结果作为历史结果。
-            //Serial.print输出数据
-            Serial.print("A0=");
-            Serial.println(adata);
-            //也可以输出双字节数据
-            //Serial.write(data[1]);
-            //Serial.write(data[0]);
-        }
- 
+        //输出双字节数据
+        Serial.write(data[0]);
+        Serial.write(data[1]);
     }
 }
 
